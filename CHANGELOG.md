@@ -16,6 +16,7 @@ add compare links at the bottom.
 
 ### Added
 
-- Initial project scaffold.
+- Initial project scaffold with the package layout for the API, database,
+  dispatcher, domain, observability and security modules.
 
 [Unreleased]: https://github.com/dandobjim/pg-webhook-gateway/commits/main
