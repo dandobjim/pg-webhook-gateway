@@ -58,10 +58,17 @@ select = [
     "PTH", # flake8-use-pathlib
     "S",   # flake8-bandit (security)
     "RUF", # ruff-specific rules
+    "D",   # pydocstyle (Google convention)
+]
+ignore = [
+    "D107", # __init__ args are documented in the class docstring
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"] # assert is the pytest idiom
+"tests/**" = ["S101", "D"] # assert is the pytest idiom; tests need no docstrings
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.isort]
 known-first-party = ["pg_webhook_gateway"]
