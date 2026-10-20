@@ -14,6 +14,8 @@ add compare links at the bottom.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-20
+
 ### Added
 
 - Initial project scaffold with the package layout for the API, database,
@@ -22,4 +24,5 @@ add compare links at the bottom.
 - ADR-0001 documenting the choice of Postgres over Redis Streams and Kafka as
   the queue.
 
-[Unreleased]: https://github.com/dandobjim/pg-webhook-gateway/commits/main
+[Unreleased]: https://github.com/dandobjim/pg-webhook-gateway/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/dandobjim/pg-webhook-gateway/releases/tag/v0.1.0
