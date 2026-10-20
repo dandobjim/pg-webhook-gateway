@@ -94,9 +94,28 @@ EOF
 git log -1 --stat
 ```
 
-- NEVER `--no-verify`: pre-commit hooks must run. If a hook fails, show its output
-  and stop; fix and create a NEW commit (never `--amend` unless asked).
+- NEVER `--no-verify`: pre-commit hooks must run.
 - NEVER push.
+
+### 7. If a pre-commit hook fails
+
+A failed hook means NO commit was created (`git log -1` still shows the previous
+one). Retrying is a plain `git commit` again — NEVER `--amend`, that would rewrite
+the previous, unrelated commit.
+
+**Auto-fixing hooks** (they report "files were modified by this hook"):
+`ruff-format`, `end-of-file-fixer`, `trailing-whitespace`. Note that `ruff-format`
+also formats Python code blocks inside `.md` files.
+
+1. Run `git diff <files>` and verify the change is formatting only (whitespace,
+   line wrapping, blank lines) — no semantic change.
+2. Show the diff to the user with a one-line explanation.
+3. `git add <files>` and retry the SAME commit message. No new confirmation needed:
+   the content the user approved is unchanged.
+
+**Checking hooks** (`ruff check`, `mypy`, `check-toml`, etc.) or any auto-fix that
+changes meaning → show the output and STOP. Propose a fix and wait for the user;
+the fix changes what was approved.
 
 ## Checklist
 
@@ -106,3 +125,4 @@ git log -1 --stat
 - [ ] No AI attribution
 - [ ] User confirmed before committing
 - [ ] `CHANGELOG.md` included in the same commit
+- [ ] Hook auto-fixes reviewed, restaged and retried (no `--amend`)
