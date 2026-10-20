@@ -1,0 +1,78 @@
+# Contributing to pg-webhook-gateway
+
+Thanks for taking the time to contribute! This guide explains how to set up the project, name branches, write commits and open pull requests.
+
+## Local setup
+
+Requirements: Python >= 3.14, [uv](https://docs.astral.sh/uv/) and Git.
+
+```bash
+git clone https://github.com/dandobjim/pg-webhook-gateway.git
+cd pg-webhook-gateway
+uv sync                      # create .venv with the project and dev tools
+uv run pre-commit install    # run checks on every commit
+```
+
+## Branch naming
+
+Create branches from `main` using `<type>/<short-kebab-case-description>`, with the same types as Conventional Commits:
+
+| Prefix      | Use for                                   | Example                       |
+| ----------- | ----------------------------------------- | ----------------------------- |
+| `feat/`     | New functionality                         | `feat/export-to-csv`          |
+| `fix/`      | Bug fixes                                 | `fix/null-config-crash`       |
+| `docs/`     | Documentation only                        | `docs/adr-persistence`        |
+| `refactor/` | Code changes without behaviour changes    | `refactor/split-parser`       |
+| `test/`     | Adding or fixing tests                    | `test/parser-edge-cases`      |
+| `chore/`    | Tooling, dependencies, CI                 | `chore/bump-ruff`             |
+
+## Conventional Commits
+
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+
+```
+<type>(<optional scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+- **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+- **Description**: imperative, lowercase, no trailing period (`add csv export`, not `Added CSV export.`).
+- **Breaking changes**: add `!` after the type/scope and a `BREAKING CHANGE:` footer.
+
+Examples:
+
+```
+feat(export): add csv export
+fix: handle missing config file
+feat(api)!: rename `load` to `read`
+
+BREAKING CHANGE: `load()` was removed, use `read()` instead.
+```
+
+`feat` maps to a SemVer minor release, `fix` to a patch and breaking changes to a major.
+
+## Running checks
+
+Run the same checks CI runs before pushing:
+
+```bash
+uv run pytest                        # tests + coverage (must stay >= 80%)
+uv run ruff check .                  # lint
+uv run ruff format --check .         # formatting
+uv run mypy                          # strict type checking
+uv run pre-commit run --all-files    # everything above plus file hygiene
+```
+
+## Pull requests
+
+1. Keep PRs small and focused on one change.
+2. Fill in the [pull request template](.github/pull_request_template.md); its checklist is the single source of truth for what a PR needs.
+3. Add an entry under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md) for user-facing changes.
+4. For significant design decisions, add an [ADR](docs/adr/README.md).
+
+## Reporting bugs and vulnerabilities
+
+Open a [GitHub issue](https://github.com/dandobjim/pg-webhook-gateway/issues) for bugs. **Do not** open public issues for security problems; follow [SECURITY.md](SECURITY.md) instead.
