@@ -18,5 +18,8 @@ add compare links at the bottom.
 
 - Initial project scaffold with the package layout for the API, database,
   dispatcher, domain, observability and security modules.
+- Architecture overview diagram in the README.
+- ADR-0001 documenting the choice of Postgres over Redis Streams and Kafka as
+  the queue.
 
 [Unreleased]: https://github.com/dandobjim/pg-webhook-gateway/commits/main

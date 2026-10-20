@@ -98,6 +98,45 @@ pg-webhook-gateway/
 └── pyproject.toml          # metadata, dependencies and tool configuration
 ```
 
+```mermaid
+flowchart LR
+    producer["Producer<br/>(tenant service)"]
+
+    subgraph gateway["pg-webhook-gateway"]
+        direction LR
+        api["Ingest API<br/>FastAPI"]
+        admin["Admin API<br/>endpoints, subscriptions,<br/>replay"]
+        dispatcher["Dispatcher<br/>asyncio workers"]
+        reaper["Reaper<br/>expired lease recovery"]
+    end
+
+    db[("PostgreSQL<br/>events · deliveries ·<br/>delivery_attempts")]
+    subscribers["Subscriber endpoints"]
+
+    subgraph observability["Observability"]
+        direction TB
+        otel["OpenTelemetry Collector"]
+        prom["Prometheus"]
+        tempo["Tempo"]
+        grafana["Grafana"]
+    end
+
+    producer -->|"POST /v1/events<br/>API key + Idempotency-Key"| api
+    api -->|"single transaction:<br/>event + deliveries (outbox)"| db
+    admin -->|"CRUD + replay dead deliveries"| db
+    dispatcher -->|"claim batch<br/>FOR UPDATE SKIP LOCKED + lease"| db
+    dispatcher -->|"HTTPS POST<br/>Standard Webhooks signature"| subscribers
+    dispatcher -->|"finalize with lease token"| db
+    reaper -->|"expired leases → retrying"| db
+
+    api -.->|traces, metrics| otel
+    dispatcher -.->|traces, metrics| otel
+    otel --> prom
+    otel --> tempo
+    prom --> grafana
+    tempo --> grafana
+```
+
 ## Project docs
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to set up, branch, commit and open PRs
