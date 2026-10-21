@@ -1,14 +1,7 @@
 ---
-# Allowed values: proposed | rejected | accepted | deprecated | superseded by ADR-NNNN
 status: accepted
-# Date of the last update, YYYY-MM-DD
 date: 2026-10-20
-# People who own the decision
-decision-makers: [ Daniel Doblas Jimenez ]
-# People whose opinion was sought (two-way communication)
-consulted: [ None ]
-# People kept up to date on progress (one-way communication)
-informed: [ Daniel Doblas Jimenez ]
+decision-makers: Daniel Doblas Jiménez
 ---
 
 # Postgres as a queue: use Postgres instead of Redis or Kafka for queueing

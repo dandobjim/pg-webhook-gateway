@@ -101,11 +101,14 @@ pg-webhook-gateway/
 ```mermaid
 flowchart LR
     producer["Producer<br/>(tenant service)"]
+    tenant["Tenant developer"]
+    operator["Platform operator"]
 
     subgraph gateway["pg-webhook-gateway"]
         direction LR
         api["Ingest API<br/>FastAPI"]
-        admin["Admin API<br/>endpoints, subscriptions,<br/>replay"]
+        mgmt["Management API<br/>endpoints, subscriptions,<br/>secrets, replay"]
+        opsapi["Operator API (internal)<br/>tenants, API keys,<br/>incidents"]
         dispatcher["Dispatcher<br/>asyncio workers"]
         reaper["Reaper<br/>expired lease recovery"]
     end
@@ -123,7 +126,10 @@ flowchart LR
 
     producer -->|"POST /v1/events<br/>API key + Idempotency-Key"| api
     api -->|"single transaction:<br/>event + deliveries (outbox)"| db
-    admin -->|"CRUD + replay dead deliveries"| db
+    tenant -->|"/v1/...<br/>tenant API key"| mgmt
+    operator -->|"/internal/v1/...<br/>operator credential"| opsapi
+    mgmt -->|"own resources:<br/>CRUD + replay dead deliveries"| db
+    opsapi -->|"cross-tenant:<br/>tenants, keys, replay, purge"| db
     dispatcher -->|"claim batch<br/>FOR UPDATE SKIP LOCKED + lease"| db
     dispatcher -->|"HTTPS POST<br/>Standard Webhooks signature"| subscribers
     dispatcher -->|"finalize with lease token"| db

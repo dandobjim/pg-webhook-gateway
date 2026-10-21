@@ -14,6 +14,20 @@ add compare links at the bottom.
 
 ## [Unreleased]
 
+### Added
+
+- ADR-0002 adopting the Standard Webhooks v1.0.0 specification (HMAC-SHA256
+  `v1` scheme) for signing deliveries, covering spoofing, tampering, replay,
+  duplicate deliveries and zero-downtime secret rotation.
+- Functional and non-functional requirements document with stable IDs that
+  ADRs, issues and tests can reference.
+
+### Changed
+
+- Architecture diagram now separates the public tenant Management API from the
+  internal platform Operator API, reflecting their different audiences,
+  permissions and exposure.
+
 ## [0.1.0] - 2026-10-20
 
 ### Added

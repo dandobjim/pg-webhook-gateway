@@ -21,3 +21,5 @@ This project uses the [MADR 4](https://adr.github.io/madr/) format. Metadata (`s
 | ADR | Title | Status |
 | --- | ----- | ------ |
 | [0000](0000-template.md) | Template | — |
+| [0001](0001-postgres-vs-redis-kafka.md) | Postgres as a queue: use Postgres instead of Redis or Kafka for queueing | Accepted |
+| [0002](0002-signing-format.md) | Use Standard Webhooks for payload signing | Accepted |
