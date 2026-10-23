@@ -174,6 +174,124 @@ flowchart LR
     tempo --> grafana
 ```
 
+### Database schema
+
+The schema is created by the Alembic revisions in [`alembic/versions/`](alembic/versions/), applied in this order: tenants and API keys, endpoints and subscriptions, events and deliveries, audit log. Primary keys are `uuidv7()` (native in PostgreSQL 18 and time-ordered) except for the two append-only logs, which use `bigint` identity columns.
+
+```mermaid
+erDiagram
+    tenants ||--o{ api_keys : "authenticates with"
+    tenants ||--o{ endpoints : owns
+    tenants ||--o{ events : ingests
+    tenants |o--o{ audit_log : "scopes (null = platform-wide)"
+    endpoints ||--o{ subscriptions : "listens via (cascade)"
+    endpoints ||--o{ deliveries : receives
+    events ||--o{ deliveries : "fans out to (cascade)"
+    deliveries ||--o{ delivery_attempts : "records (cascade)"
+
+    tenants {
+        uuid id PK
+        text name
+        text status "active | suspended"
+        integer ingest_rate_limit_per_sec "> 0, default 100"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    api_keys {
+        uuid id PK
+        uuid tenant_id FK
+        text name
+        text prefix UK "visible part, used for lookup"
+        bytea key_hash "sha256(full key), 32 bytes"
+        text_array scopes "default {events:write}"
+        timestamptz expires_at "nullable"
+        timestamptz revoked_at "nullable"
+        timestamptz last_used_at "updated at most once per minute"
+        timestamptz created_at
+    }
+    endpoints {
+        uuid id PK "UK (id, tenant_id)"
+        uuid tenant_id FK
+        text url
+        text description "nullable"
+        text status "active | disabled | deleted"
+        text disabled_reason "manual | gone_410 | failing | operator"
+        timestamptz disabled_at "nullable"
+        bytea secret_ciphertext "signing secret, encrypted"
+        bytea previous_secret_ciphertext "set during rotation"
+        timestamptz previous_secret_expires_at "set during rotation"
+        smallint secret_key_version "which KEK encrypted the secrets"
+        smallint max_concurrency "1..100, default 10"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    subscriptions {
+        uuid id PK
+        uuid tenant_id FK "with endpoint_id"
+        uuid endpoint_id FK "UK (endpoint_id, event_type)"
+        text event_type "* or invoice.paid style"
+        timestamptz created_at
+    }
+    events {
+        uuid id PK "sent as webhook-id; UK (id, tenant_id)"
+        uuid tenant_id FK "UK (tenant_id, idempotency_key)"
+        text event_type "dot-delimited [a-zA-Z0-9_]"
+        bytea payload "<= 256 KiB"
+        text idempotency_key "1..255 chars"
+        bytea request_fingerprint "32 bytes"
+        text traceparent "W3C trace context, nullable"
+        timestamptz created_at
+    }
+    deliveries {
+        uuid id PK
+        uuid tenant_id FK
+        uuid event_id FK "UK (event_id, endpoint_id)"
+        uuid endpoint_id FK
+        text status "pending | in_flight | retrying | delivered | dead"
+        smallint attempt_count ">= 0"
+        timestamptz next_attempt_at "when the dispatcher may claim it"
+        timestamptz locked_until "lease expiry, in_flight only"
+        uuid lease_token "lease owner, in_flight only"
+        smallint last_status_code "nullable"
+        text last_error "nullable"
+        timestamptz delivered_at "set iff delivered"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    delivery_attempts {
+        bigint id PK "identity"
+        uuid delivery_id FK "UK (delivery_id, attempt_number)"
+        smallint attempt_number ">= 1"
+        timestamptz started_at
+        integer duration_ms ">= 0"
+        text outcome "success | http_error | timeout | ..."
+        smallint status_code "nullable"
+        text response_excerpt "first 1 KB of the body"
+        text error_message "nullable"
+    }
+    audit_log {
+        bigint id PK "identity"
+        timestamptz occurred_at
+        text actor_type "operator | tenant | system"
+        text actor_id
+        uuid tenant_id FK "nullable"
+        text action "e.g. delivery.replayed"
+        text target_type
+        text target_id
+        jsonb details "default {}"
+    }
+```
+
+How to read it:
+
+- **Tenant isolation is enforced by the database.** `endpoints` and `events` expose a `UNIQUE (id, tenant_id)` key, and `subscriptions` and `deliveries` reference it with composite foreign keys `(endpoint_id, tenant_id)` / `(event_id, tenant_id)`. A delivery can't link an event of tenant A to an endpoint of tenant B.
+- **Ingest is idempotent.** `UNIQUE (tenant_id, idempotency_key)` on `events` rejects replays of the same request, and `request_fingerprint` (a 32-byte hash of the request) lets ingest detect a key reused with a different body.
+- **Fan-out:** one `deliveries` row per matching (event, endpoint), and `UNIQUE (event_id, endpoint_id)` makes duplicates impossible. Subscriptions match an exact `event_type` or `*`.
+- **Delivery lifecycle:** `pending → in_flight → delivered`, or `→ retrying → in_flight → …` until it is `dead` (DLQ). CHECK constraints keep the state consistent: `lease_token` and `locked_until` are set **only** while `in_flight`, and `delivered_at` **only** when `delivered`. Every HTTP try is appended to `delivery_attempts`.
+- **Hot-path indexes:** `deliveries_ready_idx` (partial, `pending`/`retrying` by `next_attempt_at`) serves the dispatcher's `FOR UPDATE SKIP LOCKED` claim; `deliveries_leased_idx` (partial, `in_flight` by `locked_until`) serves the reaper; `deliveries_tenant_idx` serves `GET /v1/deliveries?status=dead`.
+- **Cascades:** deleting an event (retention, via `events_retention_idx`) removes its deliveries and their attempts. Endpoints are soft-deleted (`status = 'deleted'`), so their deliveries are kept for history.
+- **Endpoint invariants:** `disabled_reason` is set if and only if `status = 'disabled'`, and `previous_secret_*` are both set or both null (the zero-downtime secret rotation window).
+
 ## Project docs
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to set up, branch, commit and open PRs

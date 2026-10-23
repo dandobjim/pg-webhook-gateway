@@ -27,6 +27,12 @@ add compare links at the bottom.
 - Async database stack (SQLAlchemy asyncio + asyncpg) and Alembic migrations
   running in async mode, configured through `DATABASE_URL`; generated
   revisions are linted and formatted with Ruff automatically.
+- Initial database schema as Alembic migrations: tenants and API keys,
+  endpoints and subscriptions, events, deliveries and delivery attempts, and
+  an audit log. Tenant isolation is enforced with composite foreign keys, and
+  partial indexes back the dispatcher claim and the expired-lease reaper.
+- Database schema ER diagram in the README, with notes on tenant isolation,
+  idempotent ingest, fan-out and the delivery lifecycle.
 
 ### Changed
 
