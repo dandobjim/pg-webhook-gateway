@@ -25,6 +25,9 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 
+# Local Postgres data (docker-compose volume)
+postgres-data/
+
 # IDE / OS
 .idea/
 .vscode/

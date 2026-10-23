@@ -1,0 +1,2 @@
+Async single-database configuration (SQLAlchemy asyncio + asyncpg).
+The connection URL comes from the DATABASE_URL environment variable.

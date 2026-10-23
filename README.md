@@ -22,12 +22,15 @@ Reliable webhook delivery gateway in Python: Postgres-backed queue with SKIP LOC
 
 ## Quickstart
 
-Requirements: Python >= 3.14 and [uv](https://docs.astral.sh/uv/).
+Requirements: Python >= 3.14, [uv](https://docs.astral.sh/uv/) and Docker (with Compose).
 
 ```bash
 git clone https://github.com/dandobjim/pg-webhook-gateway.git
 cd pg-webhook-gateway
 uv sync
+cp .env.example .env                           # local settings (git-ignored)
+docker compose up -d                           # PostgreSQL 18, data in ./postgres-data
+uv run --env-file .env alembic upgrade head    # apply migrations
 ```
 
 ```python
@@ -40,11 +43,18 @@ print(pg_webhook_gateway.__version__)
 
 Project and tool settings live in [`pyproject.toml`](pyproject.toml): dependencies, Ruff, mypy, pytest and coverage.
 
-<!-- Document runtime configuration here. Example: -->
+Runtime settings come from environment variables. Copy [`.env.example`](.env.example) to `.env` (git-ignored) and load it with `uv run --env-file .env ...`; Docker Compose reads `.env` automatically.
 
-| Variable    | Description             | Default |
-| ----------- | ----------------------- | ------- |
-| `LOG_LEVEL` | Application log level   | `INFO`  |
+| Variable            | Description                                            | Default (`.env.example`)                                        |
+| ------------------- | ------------------------------------------------------ | --------------------------------------------------------------- |
+| `DATABASE_URL`      | Async SQLAlchemy URL (asyncpg) used by app and Alembic | `postgresql+asyncpg://webhooks:webhooks@localhost:5432/webhooks` |
+| `POSTGRES_USER`     | User created by the Postgres container                 | `webhooks`                                                      |
+| `POSTGRES_PASSWORD` | Password for that user                                 | `webhooks`                                                      |
+| `POSTGRES_DB`       | Database created by the Postgres container             | `webhooks`                                                      |
+| `POSTGRES_PORT`     | Host port mapped to the container's 5432               | `5432`                                                          |
+| `LOG_LEVEL`         | Application log level                                  | `INFO`                                                          |
+
+PostgreSQL is both the store and the queue (see [ADR-0001](docs/adr/0001-postgres-vs-redis-kafka.md)): the gateway talks to it asynchronously through SQLAlchemy's asyncio extension and the [asyncpg](https://github.com/MagicStack/asyncpg) driver, and workers claim deliveries with `FOR UPDATE SKIP LOCKED`.
 
 ## Development
 
@@ -65,6 +75,23 @@ uv run pre-commit install    # run checks automatically on every commit
 | Update hook versions     | `uv run pre-commit autoupdate`      |
 | Add a dependency         | `uv add <package>`                  |
 | Add a dev dependency     | `uv add --dev <package>`            |
+
+### Database
+
+A local PostgreSQL 18 runs from [`docker-compose.yml`](docker-compose.yml). Its data lives in `./postgres-data` (bind mount, git-ignored), so it survives `docker compose down`. Migrations are managed with [Alembic](https://alembic.sqlalchemy.org/) in async mode ([`alembic/env.py`](alembic/env.py)) and read `DATABASE_URL`; generated revisions are formatted with Ruff automatically.
+
+| Task                        | Command                                                         |
+| --------------------------- | --------------------------------------------------------------- |
+| Start Postgres              | `docker compose up -d`                                          |
+| Stop Postgres (keeps data)  | `docker compose down`                                           |
+| Follow logs                 | `docker compose logs -f postgres`                               |
+| Open a `psql` shell         | `docker compose exec postgres psql -U webhooks -d webhooks`     |
+| Create a migration          | `uv run --env-file .env alembic revision -m "describe change"` |
+| Autogenerate from models    | `uv run --env-file .env alembic revision --autogenerate -m "…"` |
+| Apply migrations            | `uv run --env-file .env alembic upgrade head`                   |
+| Revert last migration       | `uv run --env-file .env alembic downgrade -1`                   |
+| Show current revision       | `uv run --env-file .env alembic current`                        |
+| Reset the database (wipes!) | `docker compose down && rm -rf postgres-data`                   |
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, commit conventions and the PR checklist.
 
@@ -92,9 +119,13 @@ Significant design decisions are recorded as [Architecture Decision Records](doc
 ```
 pg-webhook-gateway/
 ├── .github/                # CI workflow, Dependabot, PR template
+├── alembic/                # async migration environment and revisions
 ├── docs/adr/               # architecture decision records
 ├── src/pg_webhook_gateway/ # package source code
 ├── tests/                  # pytest test suite
+├── .env.example            # sample local settings (copy to .env)
+├── alembic.ini             # Alembic configuration
+├── docker-compose.yml      # local PostgreSQL 18 (data in ./postgres-data)
 └── pyproject.toml          # metadata, dependencies and tool configuration
 ```
 

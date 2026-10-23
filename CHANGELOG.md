@@ -21,6 +21,12 @@ add compare links at the bottom.
   duplicate deliveries and zero-downtime secret rotation.
 - Functional and non-functional requirements document with stable IDs that
   ADRs, issues and tests can reference.
+- Local PostgreSQL 18 via Docker Compose, with data persisted in a
+  git-ignored `postgres-data/` directory and settings loaded from `.env`
+  (see `.env.example`).
+- Async database stack (SQLAlchemy asyncio + asyncpg) and Alembic migrations
+  running in async mode, configured through `DATABASE_URL`; generated
+  revisions are linted and formatted with Ruff automatically.
 
 ### Changed
 
