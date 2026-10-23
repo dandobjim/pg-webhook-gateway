@@ -1,6 +1,6 @@
 [project]
 name = "pg-webhook-gateway"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reliable webhook delivery gateway in Python: Postgres-backed queue with SKIP LOCKED leases, at-least-once delivery, Standard Webhooks signatures, retries with jitter, DLQ and replay."
 readme = "README.md"
 license = "MIT"

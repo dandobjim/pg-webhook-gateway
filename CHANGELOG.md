@@ -14,6 +14,8 @@ add compare links at the bottom.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-23
+
 ### Added
 
 - ADR-0002 adopting the Standard Webhooks v1.0.0 specification (HMAC-SHA256
@@ -50,5 +52,6 @@ add compare links at the bottom.
 - ADR-0001 documenting the choice of Postgres over Redis Streams and Kafka as
   the queue.
 
-[Unreleased]: https://github.com/dandobjim/pg-webhook-gateway/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/dandobjim/pg-webhook-gateway/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/dandobjim/pg-webhook-gateway/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/dandobjim/pg-webhook-gateway/releases/tag/v0.1.0
