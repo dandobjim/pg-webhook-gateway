@@ -14,6 +14,15 @@ add compare links at the bottom.
 
 ## [Unreleased]
 
+### Added
+
+- ADR-0003 performing the delivery fan-out inside the ingest transaction, so
+  an accepted event never exists without its deliveries.
+- ADR-0004 (proposed) using explicit SQL with async psycopg 3 behind
+  repository interfaces for the latency-sensitive queue queries.
+- FastAPI application skeleton with a root welcome endpoint, runnable through
+  the `fastapi` CLI entrypoint configured in `pyproject.toml`.
+
 ## [0.2.0] - 2026-10-23
 
 ### Added
