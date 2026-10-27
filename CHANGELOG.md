@@ -22,6 +22,17 @@ add compare links at the bottom.
   repository interfaces for the latency-sensitive queue queries.
 - FastAPI application skeleton with a root welcome endpoint, runnable through
   the `fastapi` CLI entrypoint configured in `pyproject.toml`.
+- Typed application settings with pydantic-settings, read from the environment
+  or `.env` (`DATABASE_URL`, pool size, max overflow, SQL echo).
+- Async database engine created on application startup and disposed on
+  shutdown, with a request-scoped session dependency for route handlers.
+- `/api/v1/healthz` liveness probe and `/api/v1/readyz` readiness probe;
+  readiness runs `SELECT 1` and answers 503 when Postgres is unreachable.
+
+### Changed
+
+- Renamed the import package from `pg_webhook_gateway` to `app`; the
+  distribution name `pg-webhook-gateway` is unchanged.
 
 ## [0.2.0] - 2026-10-23
 

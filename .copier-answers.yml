@@ -6,7 +6,7 @@ author_name: Daniel Doblas Jimenez
 copyright_year: '2026'
 coverage_threshold: 80
 github_username: dandobjim
-package_name: pg_webhook_gateway
+package_name: app
 project_description: 'Reliable webhook delivery gateway in Python: Postgres-backed
     queue with SKIP LOCKED leases, at-least-once delivery, Standard Webhooks signatures,
     retries with jitter, DLQ and replay.'

@@ -34,9 +34,9 @@ uv run --env-file .env alembic upgrade head    # apply migrations
 ```
 
 ```python
-import pg_webhook_gateway
+import app
 
-print(pg_webhook_gateway.__version__)
+print(app.__version__)
 ```
 
 ## Configuration
@@ -121,7 +121,7 @@ pg-webhook-gateway/
 ├── .github/                # CI workflow, Dependabot, PR template
 ├── alembic/                # async migration environment and revisions
 ├── docs/adr/               # architecture decision records
-├── src/pg_webhook_gateway/ # package source code
+├── src/app/ # package source code
 ├── tests/                  # pytest test suite
 ├── .env.example            # sample local settings (copy to .env)
 ├── alembic.ini             # Alembic configuration

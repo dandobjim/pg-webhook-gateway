@@ -14,7 +14,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set to the declarative Base metadata (pg_webhook_gateway.db) once models exist,
+# Set to the declarative Base metadata (app.db) once models exist,
 # so `alembic revision --autogenerate` can diff against it.
 target_metadata = None
 

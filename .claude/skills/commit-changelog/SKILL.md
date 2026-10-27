@@ -48,7 +48,7 @@ get a changelog entry (say so in the proposal).
   above (Added, Changed, Deprecated, Removed, Fixed, Security).
 - Bullets describe WHAT changed and WHY from a user's point of view — not file lists.
   - Good: `- Postgres-backed delivery queue using SKIP LOCKED leases.`
-  - Bad: `- Added src/pg_webhook_gateway/db/queue.py.`
+  - Bad: `- Added src/app/db/queue.py.`
 - No duplicate bullets: if an equivalent entry already exists, refine it instead.
 - Do NOT touch the header, the HTML comment block, released versions, or the link
   references at the bottom.
@@ -68,7 +68,7 @@ get a changelog entry (say so in the proposal).
 ```
 
 - `type`: feat, fix, refactor, perf, docs, test, build, ci, chore, style, revert.
-- `scope` (optional): the `src/pg_webhook_gateway/` subpackage touched — `api`, `db`, `dispatcher`,
+- `scope` (optional): the `src/app/` subpackage touched — `api`, `db`, `dispatcher`,
   `domain`, `observability`, `security`. Omit when changes span many modules.
 - `subject`: imperative mood, lowercase, no trailing period, ≤ 72 chars.
 - Breaking change → `!` after type/scope and a `BREAKING CHANGE:` footer.
