@@ -28,11 +28,21 @@ add compare links at the bottom.
   shutdown, with a request-scoped session dependency for route handlers.
 - `/api/v1/healthz` liveness probe and `/api/v1/readyz` readiness probe;
   readiness runs `SELECT 1` and answers 503 when Postgres is unreachable.
+- API key generation in the `pwg_<env>_<key_id>_<secret>` format; only the
+  public prefix and a SHA-256 hash of the key are meant to be stored.
+- Bearer API key authentication dependency for route handlers: keys are looked
+  up by prefix and rejected when revoked, expired or owned by an inactive
+  tenant.
 
 ### Changed
 
 - Renamed the import package from `pg_webhook_gateway` to `app`; the
   distribution name `pg-webhook-gateway` is unchanged.
+
+### Security
+
+- API key hashes are compared in constant time, and every authentication
+  failure returns the same 401 so callers cannot tell why a key was refused.
 
 ## [0.2.0] - 2026-10-23
 
